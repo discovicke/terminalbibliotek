@@ -53,5 +53,36 @@ END", connection);
             connection.Close();
             Console.WriteLine($"Författare med id '{args[2]}' har tagits bort!");
         }
+
+        if ((args[0] == "a" && args[1] == "b") || (args[0] == "add" && args[1] == "book"))
+        {
+            connection.Open();
+            var insertCommand = new SqlCommand("INSERT INTO books (name) VALUES (@name)", connection);
+            insertCommand.Parameters.AddWithValue("@name", args[2]);
+            insertCommand.ExecuteNonQuery();
+            connection.Close();
+            Console.WriteLine($"Bok '{args[2]}' har lagts till!");
+        }
+
+        if ((args[0] == "r" && args[1] == "b") || (args[0] == "remove" && args[1] == "book"))
+        {
+            connection.Open();
+            var deleteCommand = new SqlCommand("DELETE FROM books WHERE name = @name", connection);
+            deleteCommand.Parameters.AddWithValue("@name", args[2]);
+            deleteCommand.ExecuteNonQuery();
+            connection.Close();
+            Console.WriteLine($"Bok '{args[2]}' har tagits bort!");
+        }
+
+        if ((args[0] == "l" && args[1] == "b") || (args[0] == "list" && args[1] == "books"))
+        {
+            var listCommand = new SqlCommand("SELECT * FROM books", connection);
+            var reader = listCommand.ExecuteReader();
+            while (reader.Read())
+            {
+                Console.WriteLine($"{reader["id"]}: {reader["name"]}");
+            }
+            connection.Close();
+        }
     }
 }
