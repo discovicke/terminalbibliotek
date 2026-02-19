@@ -22,6 +22,41 @@ END", connection);
         command.ExecuteNonQuery();
         connection.Close();
         
+        
+        connection.Open();
+        var bookCommand = new SqlCommand(@"
+IF NOT EXISTS (
+SELECT * FROM sys.tables WHERE name = 'authors') 
+BEGIN
+CREATE TABLE books (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            name NVARCHAR(50)),
+            author_id INT REFERENCES authors(id);
+END", connection);
+        bookCommand.ExecuteNonQuery();
+        connection.Close();
+        
+        connection.Open();
+        var bridgeCommand = new SqlCommand(@"
+IF NOT EXISTS (
+SELECT * FROM sys.tables WHERE name = 'authors') 
+BEGIN
+CREATE TABLE book_author (
+            book_id INT REFERENCES books(id),
+            author_id INT REFERENCES authors(id),
+            PRIMARY KEY (book_id, author_id));
+END", connection);
+        bridgeCommand.ExecuteNonQuery();
+        connection.Close();
+        
+        if (args.Length < 2)
+        {
+            Console.WriteLine("Usage: terminalbibliotek <action> <entity> [parameters]");
+            Console.WriteLine("Actions: list (l), add (a), remove (r)");
+            Console.WriteLine("Entities: author (a)");
+            return;
+        }
+        
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
             connection.Open();
