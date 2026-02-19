@@ -17,6 +17,19 @@ CREATE TABLE authors (
             name NVARCHAR(50));
 END", connection);
         command.ExecuteNonQuery();
+        
+        if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
+        {
+            connection.Open();
+            var listCommand = new SqlCommand("SELECT * FROM authors", connection);
+            var reader = listCommand.ExecuteReader();
+            while (reader.Read())
+            {
+                Console.WriteLine($"{reader["id"]}: {reader["name"]}");
+            }
+            connection.Close();
+        }
+        
         connection.Close();
     }
 }
