@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using Dapper;
 
 namespace terminalbibliotek;
 
@@ -19,6 +20,7 @@ CREATE TABLE authors (
             name NVARCHAR(50));
 END", connection);
         command.ExecuteNonQuery();
+        connection.Close();
         
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
@@ -31,25 +33,32 @@ END", connection);
             }
             connection.Close();
         }
-        
-        connection.Close();
-    }
 
-
-        private List<string> authors = new List<string>
+        if ((args[0] == "a" && args[1] == "a") || (args[0] == "add" && args[1] == "author"))
         {
-            "August Strindberg",
-            "Selma Lagerlöf",
-            "Kalle Anka",
-            "Kajsa Anka",
-            "Leif GW Persson",
-            "Astrid Lindgren",
-            "Tove Jansson",
-            "Anders Andersson",
-            "Nisse Pettersson",
-            "Elsa Tokström",
-            "Sune Hejåhå"
-        };
-    
+            connection.Open();
+            var insertCommand = new SqlCommand("INSERT INTO authors (name) VALUES (@name)", connection);
+            insertCommand.Parameters.AddWithValue("@name", args[2]);
+            insertCommand.ExecuteNonQuery();
+            connection.Close();
+            Console.WriteLine($"Författare '{args[2]}' har lagts till!");
+        }
+        
     }
-    
+
+
+    private List<string> authors = new List<string>
+    {
+        "August Strindberg",
+        "Selma Lagerlöf",
+        "Kalle Anka",
+        "Kajsa Anka",
+        "Leif GW Persson",
+        "Astrid Lindgren",
+        "Tove Jansson",
+        "Anders Andersson",
+        "Nisse Pettersson",
+        "Elsa Tokström",
+        "Sune Hejåhå"
+    };
+}
