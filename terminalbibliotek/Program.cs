@@ -43,22 +43,15 @@ END", connection);
             connection.Close();
             Console.WriteLine($"Författare '{args[2]}' har lagts till!");
         }
-        
+
+        if ((args[0] == "r" && args[1] == "a") || (args[0] == "remove" && args[1] == "author"))
+        {
+            connection.Open();
+            var deleteCommand = new SqlCommand("DELETE FROM authors WHERE name = @name", connection);
+            deleteCommand.Parameters.AddWithValue("@name", args[2]);
+            deleteCommand.ExecuteNonQuery();
+            connection.Close();
+            Console.WriteLine($"Författare med id '{args[2]}' har tagits bort!");
+        }
     }
-
-
-    private List<string> authors = new List<string>
-    {
-        "August Strindberg",
-        "Selma Lagerlöf",
-        "Kalle Anka",
-        "Kajsa Anka",
-        "Leif GW Persson",
-        "Astrid Lindgren",
-        "Tove Jansson",
-        "Anders Andersson",
-        "Nisse Pettersson",
-        "Elsa Tokström",
-        "Sune Hejåhå"
-    };
 }
