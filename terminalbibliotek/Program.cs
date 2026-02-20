@@ -17,7 +17,8 @@ SELECT * FROM sys.tables WHERE name = 'authors')
 BEGIN
 CREATE TABLE authors (
             id INT IDENTITY(1,1) PRIMARY KEY,
-            name NVARCHAR(50));
+            name NVARCHAR(50),
+            birth_year INT)
 END", connection);
         command.ExecuteNonQuery();
         connection.Close();
@@ -31,7 +32,9 @@ BEGIN
 CREATE TABLE books (
             id INT IDENTITY(1,1) PRIMARY KEY,
             name NVARCHAR(50),
-            author_id INT REFERENCES authors(id));
+            author_id INT REFERENCES authors(id),
+            published INT,
+            genre NVARCHAR(50))
 END", connection);
         bookCommand.ExecuteNonQuery();
         connection.Close();
@@ -44,18 +47,10 @@ BEGIN
 CREATE TABLE book_author (
             book_id INT REFERENCES books(id) ON DELETE CASCADE,
             author_id INT REFERENCES authors(id) ON DELETE CASCADE,
-            PRIMARY KEY (book_id, author_id));
+            PRIMARY KEY (book_id, author_id))
 END", connection);
         bridgeCommand.ExecuteNonQuery();
         connection.Close();
-
-        if (args.Length < 2)
-        {
-            Console.WriteLine("Usage: terminalbibliotek <action> <entity> [parameters]");
-            Console.WriteLine("Actions: list (l), add (a), remove (r)");
-            Console.WriteLine("Entities: author (a)");
-            return;
-        }
 
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
@@ -165,7 +160,36 @@ FROM book_author ba
 
             connection.Close();
         }
+        
+        if ((args[0] == "m" && args[1] == "a") && (args[3] == "s" && args[4] == "b") ||
+            (args[0]) == "modify" && args[1] == "author" && args[3] == "set" && args[4] == "born")
+        {
+            connection.Open();
+            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
+            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
+            var authResult = authorlistCommand.ExecuteScalar();
 
+            if (!int.TryParse(args[5], out _))
+            {
+                return;
+            }
+            
+            if (authResult == null)
+            {
+                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            
+            var addAuthorCommand = new SqlCommand(@"UPDATE authors 
+    SET birth_year = @birth_year
+    WHERE name = @name", connection);
+            addAuthorCommand.Parameters.AddWithValue("@birth_year", args[5]);
+            addAuthorCommand.Parameters.AddWithValue("@name", args[2]);
+            addAuthorCommand.ExecuteNonQuery();
+            connection.Close();
+        }
+        
         if ((args[0] == "m" && args[1] == "a" && args[3] == "a" && args[4] == "b") ||
             (args[0] == "modify" && args[1] == "author" && args[3] == "add" && args[4] == "book"))
         {
@@ -240,6 +264,60 @@ FROM book_author ba
             connectionId.Parameters.AddWithValue("@bookId", bookId);
             connectionId.Parameters.AddWithValue("@authorId", authorId);
             connectionId.ExecuteNonQuery();
+            connection.Close();
+        }
+
+        if ((args[0] == "m" && args[1] == "b" && args[3] == "s" && args[4] == "p") ||
+            (args[0] == "modify" && args[1] == "book" && args[3] == "set" && args[4] == "published"))
+        {
+            if (!int.TryParse(args[5], out _))
+            {
+                return;
+            }
+            
+            connection.Open();
+            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
+            booklistCommand.Parameters.AddWithValue("@name", args[2]);
+            var bookResult = booklistCommand.ExecuteScalar();
+
+            if (bookResult == null)
+            {
+                Console.WriteLine($"Bok '{args[2]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            
+            var bookId = Convert.ToInt32(bookResult);
+            var updateBookCommand = new SqlCommand(@"UPDATE books 
+    SET published = @published
+    WHERE name = @name", connection);
+            updateBookCommand.Parameters.AddWithValue("@published", args[5]);
+            updateBookCommand.Parameters.AddWithValue("@name", args[2]);
+            updateBookCommand.ExecuteNonQuery();
+            connection.Close();
+        }
+        
+        if ((args[0] == "m" && args[1] == "b" && args[3] == "s" && args[4] == "g") ||
+            (args[0] == "modify" && args[1] == "book" && args[3] == "set" && args[4] == "genre"))
+        {
+            connection.Open();
+            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
+            booklistCommand.Parameters.AddWithValue("@name", args[2]);
+            var bookResult = booklistCommand.ExecuteScalar();
+
+            if (bookResult == null)
+            {
+                Console.WriteLine($"Bok '{args[2]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            
+            var updateBookCommand = new SqlCommand(@"UPDATE books 
+    SET genre = @genre
+    WHERE name = @name", connection);
+            updateBookCommand.Parameters.AddWithValue("@genre", args[5]);
+            updateBookCommand.Parameters.AddWithValue("@name", args[2]);
+            updateBookCommand.ExecuteNonQuery();
             connection.Close();
         }
     }
