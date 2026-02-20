@@ -157,5 +157,42 @@ END", connection);
             connectionCommand.ExecuteNonQuery();
             connection.Close();
         }
+        
+        if ((args[0] == "m" && args[1] == "a" && args[3] == "r" && args[4] == "b") ||
+            (args[0] == "modify" && args[1] == "author" && args[3] == "remove" && args[4] == "book"))
+        {
+            connection.Open();
+            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
+            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
+            var authResult = authorlistCommand.ExecuteScalar();
+
+            if (authResult == null)
+            {
+                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            
+            var authorId = Convert.ToInt32(authResult);
+
+            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
+            booklistCommand.Parameters.AddWithValue("@name", args[5]);
+            var bookResult = booklistCommand.ExecuteScalar();
+
+            if (bookResult == null)
+            {
+                Console.WriteLine($"Bok '{args[5]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            var bookId = Convert.ToInt32(bookResult);
+            
+            var connectionId = new SqlCommand(@"DELETE FROM book_author WHERE  
+                                              book_id = @bookId AND author_id = @authorId", connection);
+            connectionId.Parameters.AddWithValue("@bookId", bookId);
+            connectionId.Parameters.AddWithValue("@authorId", authorId);
+            connectionId.ExecuteNonQuery();
+            connection.Close();
+        }
     }
 }
