@@ -67,14 +67,18 @@ class Program
                 var bookAndAuthors = connection.Query(@"
                                 SELECT 
                                 a.name, 
-                                b.name AS book_name
+                                b.name AS book_name,
+                                b.published AS book_published,
+                                b.genre AS book_genre
                                 FROM book_author ba
                                 JOIN authors a ON ba.author_id = a.id
                                 JOIN books b ON ba.book_id = b.id
-                                ");
+                                GROUP BY a.name, b.name, b.published, b.genre
+                                ORDER BY a.name");
                 foreach (var author in bookAndAuthors)
                 {
-                    Console.WriteLine($"{author.name}: {author.book_name}");
+                    Console.WriteLine($"{author.name}");
+                    Console.WriteLine($"{author.book_name} | genre: {author.book_genre} | published: {author.book_published}\n");
                 }
 
                 connection.Close();
@@ -99,14 +103,16 @@ class Program
                 var authorAndBooks = connection.Query(@"
                                 SELECT 
                                 b.name, 
-                                a.name AS author_name
+                                a.name AS author_name,
+                                a.birth_year AS birth_year
                                 FROM book_author ba
                                 JOIN books b ON b.id = ba.book_id
                                 JOIN authors a ON ba.author_id = a.id
                                 ");
                 foreach (var book in authorAndBooks)
                 {
-                    Console.WriteLine($"{book.name}: {book.author_name}");
+                    Console.WriteLine($"Bok: {book.name}");
+                    Console.WriteLine($"Författare: {book.author_name} | Född: {book.birth_year}\n");
                 }
 
                 connection.Close();
