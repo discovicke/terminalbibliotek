@@ -59,6 +59,20 @@ END", connection);
         
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
+            if (args[2] == "--books" || args[2] == "-b")
+            {
+                connection.Open();
+                var juncCommand = new SqlCommand(@"
+SELECT 
+    authors.name,
+b.name
+FROM authors 
+    JOIN book_author ba ON authors.id = ba.author_id
+    JOIN books b ON ba.book_id = b.id", connection);
+                juncCommand.ExecuteNonQuery();
+                connection.Close();
+                return;
+            }
             connection.Open();
             var listCommand = new SqlCommand("SELECT * FROM authors", connection);
             var reader = listCommand.ExecuteReader();
