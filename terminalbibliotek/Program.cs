@@ -59,18 +59,25 @@ END", connection);
         
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
-            if (args[2] == "--books" || args[2] == "-b")
+            if (args.Length > 2 && (args[2] == "--books" || args[2] == "-b"))
             {
                 connection.Open();
                 var juncCommand = new SqlCommand(@"
 SELECT 
     authors.name,
-b.name
+b.name AS book_name
 FROM authors 
     JOIN book_author ba ON authors.id = ba.author_id
     JOIN books b ON ba.book_id = b.id", connection);
-                juncCommand.ExecuteNonQuery();
+                var juncReader = juncCommand.ExecuteReader();
+
+                while (juncReader.Read())
+                {
+                    Console.WriteLine($"{juncReader["name"]}: {juncReader["book_name"]}");
+                }
+                
                 connection.Close();
+
                 return;
             }
             connection.Open();
@@ -125,6 +132,29 @@ FROM authors
 
         if ((args[0] == "l" && args[1] == "b") || (args[0] == "list" && args[1] == "books"))
         {
+            if (args.Length > 2 && (args[2] == "--authors" || args[2] == "-a"))
+            {
+                connection.Open();
+                var juncCommand = new SqlCommand(@"
+SELECT 
+    books.name,
+a.name AS author_name
+FROM books 
+    JOIN book_author ba ON books.id = ba.book_id
+    JOIN authors a ON ba.book_id = a.id", connection);
+                var juncReader = juncCommand.ExecuteReader();
+
+                while (juncReader.Read())
+                {
+                    Console.WriteLine($"{juncReader["name"]}: {juncReader["author_name"]}");
+                }
+                
+                connection.Close();
+
+                return;
+            }
+            
+            
             connection.Open();
             var listCommand = new SqlCommand("SELECT * FROM books", connection);
             var reader = listCommand.ExecuteReader();
