@@ -76,7 +76,7 @@ class Program
                         connection.Execute("UPDATE authors SET birth_year = @birth_year WHERE name = @name",
                             new { birth_year = args[5], name = args[4] });
                         connection.Close();
-                        Console.WriteLine($"{args[4]} har uppdaterats med {args[5]}!}");
+                        Console.WriteLine($"{args[4]} har uppdaterats med {args[5]}!");
                     }
 
                     if ((args[3].ToLowerInvariant() == "add" && args[3].ToLowerInvariant() == "a") ||
@@ -116,6 +116,7 @@ class Program
                             new { published = args[5], name = args[2] });
                         connection.Close();
                     }
+
                     if ((args[3] == "set" || args[3] == "s") && (args[4] == "genre" || args[4] == "genre"))
                     {
                         connection.Open();
@@ -127,34 +128,34 @@ class Program
                 break;
         }
 
-    static void ListItems(string[] args, SqlConnection connection)
-    {
-        if (args.Length > 1)
+        static void ListItems(string[] args, SqlConnection connection)
         {
-            switch (args[1].ToLowerInvariant())
+            if (args.Length > 1)
             {
-                case "a":
-                case "authors":
-                    ListAuthors(args, connection);
-                    break;
-                case "b":
-                case "books":
-                    ListBooks(args, connection);
-                    break;
-                default:
-                    Console.WriteLine($"'{args[1]}' hittades inte!");
-                    break;
+                switch (args[1].ToLowerInvariant())
+                {
+                    case "a":
+                    case "authors":
+                        ListAuthors(args, connection);
+                        break;
+                    case "b":
+                    case "books":
+                        ListBooks(args, connection);
+                        break;
+                    default:
+                        Console.WriteLine($"'{args[1]}' hittades inte!");
+                        break;
+                }
             }
         }
-    }
 
 
-    static void ListAuthors(string[] args, SqlConnection connection)
-    {
-        if (args.Length > 2 && (args[2].ToLowerInvariant() == "--books" || args[2].ToLowerInvariant() == "-b"))
+        static void ListAuthors(string[] args, SqlConnection connection)
         {
-            connection.Open();
-            var bookAndAuthors = connection.Query(@"
+            if (args.Length > 2 && (args[2].ToLowerInvariant() == "--books" || args[2].ToLowerInvariant() == "-b"))
+            {
+                connection.Open();
+                var bookAndAuthors = connection.Query(@"
                                 SELECT 
                                 a.name, 
                                 b.name AS book_name
@@ -162,31 +163,31 @@ class Program
                                 JOIN authors a ON ba.author_id = a.id
                                 JOIN books b ON ba.book_id = b.id
                                 ");
-            foreach (var author in bookAndAuthors)
+                foreach (var author in bookAndAuthors)
+                {
+                    Console.WriteLine($"{author.name}: {author.book_name}");
+                }
+
+                connection.Close();
+                return;
+            }
+
+            connection.Open();
+            var authors = connection.Query("SELECT * FROM authors");
+            foreach (var author in authors)
             {
-                Console.WriteLine($"{author.name}: {author.book_name}");
+                Console.WriteLine($"{author.id}: {author.name} | {author.birth_year}");
             }
 
             connection.Close();
-            return;
         }
 
-        connection.Open();
-        var authors = connection.Query("SELECT * FROM authors");
-        foreach (var author in authors)
+        static void ListBooks(string[] args, SqlConnection connection)
         {
-            Console.WriteLine($"{author.id}: {author.name} | {author.birth_year}");
-        }
-
-        connection.Close();
-    }
-
-    static void ListBooks(string[] args, SqlConnection connection)
-    {
-        if (args.Length > 2 && (args[2].ToLowerInvariant() == "--authors" || args[2].ToLowerInvariant() == "-a"))
-        {
-            connection.Open();
-            var authorAndBooks = connection.Query(@"
+            if (args.Length > 2 && (args[2].ToLowerInvariant() == "--authors" || args[2].ToLowerInvariant() == "-a"))
+            {
+                connection.Open();
+                var authorAndBooks = connection.Query(@"
                                 SELECT 
                                 b.name, 
                                 a.name AS author_name
@@ -194,22 +195,23 @@ class Program
                                 JOIN books b ON b.id = ba.book_id
                                 JOIN authors a ON ba.author_id = a.id
                                 ");
-            foreach (var book in authorAndBooks)
+                foreach (var book in authorAndBooks)
+                {
+                    Console.WriteLine($"{book.name}: {book.author_name}");
+                }
+
+                connection.Close();
+                return;
+            }
+
+            connection.Open();
+            var listCommand = connection.Query("SELECT * FROM books");
+            foreach (var book in listCommand)
             {
-                Console.WriteLine($"{book.name}: {book.author_name}");
+                Console.WriteLine($"{book.id}: {book.name} | {book.published} | {book.genre}");
             }
 
             connection.Close();
-            return;
         }
-
-        connection.Open();
-        var listCommand = connection.Query("SELECT * FROM books");
-        foreach (var book in listCommand)
-        {
-            Console.WriteLine($"{book.id}: {book.name} | {book.published} | {book.genre}");
-        }
-
-        connection.Close();
     }
 }
