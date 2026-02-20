@@ -150,9 +150,7 @@ FROM book_author ba
                 {
                     Console.WriteLine($"{juncReader["name"]}: {juncReader["author_name"]}");
                 }
-
                 connection.Close();
-
                 return;
             }
 
