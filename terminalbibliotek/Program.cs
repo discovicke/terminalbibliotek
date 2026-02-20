@@ -42,8 +42,8 @@ IF NOT EXISTS (
 SELECT * FROM sys.tables WHERE name = 'book_author')
 BEGIN
 CREATE TABLE book_author (
-            book_id INT REFERENCES books(id),
-            author_id INT REFERENCES authors(id),
+            book_id INT REFERENCES books(id) ON DELETE CASCADE,
+            author_id INT REFERENCES authors(id) ON DELETE CASCADE,
             PRIMARY KEY (book_id, author_id));
 END", connection);
         bridgeCommand.ExecuteNonQuery();
@@ -118,6 +118,43 @@ END", connection);
             {
                 Console.WriteLine($"{reader["id"]}: {reader["name"]}");
             }
+            connection.Close();
+        }
+
+        if ((args[0] == "m" && args[1] == "a" && args[3] == "a" && args[4] == "b") ||
+            (args[0] == "modify" && args[1] == "author" && args[3] == "add" && args[4] == "book"))
+        {
+            
+            connection.Open();
+            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
+            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
+            var authResult = authorlistCommand.ExecuteScalar();
+
+            if (authResult == null)
+            {
+                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            
+            var authorId = Convert.ToInt32(authResult);
+
+            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
+            booklistCommand.Parameters.AddWithValue("@name", args[5]);
+            var bookResult = booklistCommand.ExecuteScalar();
+
+            if (bookResult == null)
+            {
+                Console.WriteLine($"Bok '{args[5]}' hittades inte!");
+                connection.Close();
+                return;
+            }
+            var bookId = Convert.ToInt32(bookResult);
+            
+            var connectionCommand = new SqlCommand("INSERT INTO book_author (book_id, author_id) VALUES (@book_id, @author_id)", connection);
+            connectionCommand.Parameters.AddWithValue("@book_id", bookId);
+            connectionCommand.Parameters.AddWithValue("@author_id", authorId);
+            connectionCommand.ExecuteNonQuery();
             connection.Close();
         }
     }
