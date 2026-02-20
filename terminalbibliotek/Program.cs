@@ -21,8 +21,8 @@ CREATE TABLE authors (
 END", connection);
         command.ExecuteNonQuery();
         connection.Close();
-        
-        
+
+
         connection.Open();
         var bookCommand = new SqlCommand(@"
 IF NOT EXISTS (
@@ -35,7 +35,7 @@ CREATE TABLE books (
 END", connection);
         bookCommand.ExecuteNonQuery();
         connection.Close();
-        
+
         connection.Open();
         var bridgeCommand = new SqlCommand(@"
 IF NOT EXISTS (
@@ -48,7 +48,7 @@ CREATE TABLE book_author (
 END", connection);
         bridgeCommand.ExecuteNonQuery();
         connection.Close();
-        
+
         if (args.Length < 2)
         {
             Console.WriteLine("Usage: terminalbibliotek <action> <entity> [parameters]");
@@ -56,7 +56,7 @@ END", connection);
             Console.WriteLine("Entities: author (a)");
             return;
         }
-        
+
         if ((args[0] == "l" || args[0] == "list") && (args[1] == "a" || args[1] == "author"))
         {
             if (args.Length > 2 && (args[2] == "--books" || args[2] == "-b"))
@@ -75,11 +75,12 @@ FROM authors
                 {
                     Console.WriteLine($"{juncReader["name"]}: {juncReader["book_name"]}");
                 }
-                
+
                 connection.Close();
 
                 return;
             }
+
             connection.Open();
             var listCommand = new SqlCommand("SELECT * FROM authors", connection);
             var reader = listCommand.ExecuteReader();
@@ -87,6 +88,7 @@ FROM authors
             {
                 Console.WriteLine($"{reader["id"]}: {reader["name"]}");
             }
+
             connection.Close();
         }
 
@@ -136,25 +138,25 @@ FROM authors
             {
                 connection.Open();
                 var juncCommand = new SqlCommand(@"
-SELECT 
-    books.name,
-a.name AS author_name
-FROM books 
-    JOIN book_author ba ON books.id = ba.book_id
-    JOIN authors a ON ba.book_id = a.id", connection);
+SELECT
+    b.name,
+    a.name AS author_name
+FROM book_author ba
+         JOIN books b ON b.id = ba.book_id
+         JOIN authors a ON ba.author_id = a.id", connection);
                 var juncReader = juncCommand.ExecuteReader();
 
                 while (juncReader.Read())
                 {
                     Console.WriteLine($"{juncReader["name"]}: {juncReader["author_name"]}");
                 }
-                
+
                 connection.Close();
 
                 return;
             }
-            
-            
+
+
             connection.Open();
             var listCommand = new SqlCommand("SELECT * FROM books", connection);
             var reader = listCommand.ExecuteReader();
@@ -162,13 +164,13 @@ FROM books
             {
                 Console.WriteLine($"{reader["id"]}: {reader["name"]}");
             }
+
             connection.Close();
         }
 
         if ((args[0] == "m" && args[1] == "a" && args[3] == "a" && args[4] == "b") ||
             (args[0] == "modify" && args[1] == "author" && args[3] == "add" && args[4] == "book"))
         {
-            
             connection.Open();
             var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
             authorlistCommand.Parameters.AddWithValue("@name", args[2]);
@@ -180,7 +182,7 @@ FROM books
                 connection.Close();
                 return;
             }
-            
+
             var authorId = Convert.ToInt32(authResult);
 
             var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
@@ -193,15 +195,18 @@ FROM books
                 connection.Close();
                 return;
             }
+
             var bookId = Convert.ToInt32(bookResult);
-            
-            var connectionCommand = new SqlCommand("INSERT INTO book_author (book_id, author_id) VALUES (@book_id, @author_id)", connection);
+
+            var connectionCommand =
+                new SqlCommand("INSERT INTO book_author (book_id, author_id) VALUES (@book_id, @author_id)",
+                    connection);
             connectionCommand.Parameters.AddWithValue("@book_id", bookId);
             connectionCommand.Parameters.AddWithValue("@author_id", authorId);
             connectionCommand.ExecuteNonQuery();
             connection.Close();
         }
-        
+
         if ((args[0] == "m" && args[1] == "a" && args[3] == "r" && args[4] == "b") ||
             (args[0] == "modify" && args[1] == "author" && args[3] == "remove" && args[4] == "book"))
         {
@@ -216,7 +221,7 @@ FROM books
                 connection.Close();
                 return;
             }
-            
+
             var authorId = Convert.ToInt32(authResult);
 
             var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
@@ -229,8 +234,9 @@ FROM books
                 connection.Close();
                 return;
             }
+
             var bookId = Convert.ToInt32(bookResult);
-            
+
             var connectionId = new SqlCommand(@"DELETE FROM book_author WHERE  
                                               book_id = @bookId AND author_id = @authorId", connection);
             connectionId.Parameters.AddWithValue("@bookId", bookId);
