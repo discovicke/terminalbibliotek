@@ -40,9 +40,11 @@ class Program
                             {
                                 Console.WriteLine($"{author.name}: {author.book_name}");
                             }
+
                             connection.Close();
                             return;
                         }
+
                         connection.Open();
                         var authors = connection.Query("SELECT * FROM authors");
                         foreach (var author in authors)
@@ -71,204 +73,109 @@ class Program
                             {
                                 Console.WriteLine($"{book.name}: {book.author_name}");
                             }
+
                             connection.Close();
                             return;
                         }
+
                         connection.Open();
                         var listCommand = connection.Query("SELECT * FROM books");
                         foreach (var book in listCommand)
                         {
                             Console.WriteLine($"{book.id}: {book.name} | {book.published} | {book.genre}");
                         }
+
                         connection.Close();
                         return;
                     }
                 }
 
                 Console.WriteLine("Ogiltigt kommando. Använd 'list authors' eller 'list books'.");
-                return;
-            
-        }
-
-        if ((args[0] == "a" && args[1] == "a") || (args[0] == "add" && args[1] == "author"))
-        {
-            connection.Open();
-            var insertCommand = new SqlCommand("INSERT INTO authors (name) VALUES (@name)", connection);
-            insertCommand.Parameters.AddWithValue("@name", args[2]);
-            insertCommand.ExecuteNonQuery();
-            connection.Close();
-            Console.WriteLine($"Författare '{args[2]}' har lagts till!");
-        }
-
-        if ((args[0] == "r" && args[1] == "a") || (args[0] == "remove" && args[1] == "author"))
-        {
-            connection.Open();
-            var deleteCommand = new SqlCommand("DELETE FROM authors WHERE name = @name", connection);
-            deleteCommand.Parameters.AddWithValue("@name", args[2]);
-            deleteCommand.ExecuteNonQuery();
-            connection.Close();
-            Console.WriteLine($"Författare '{args[2]}' har tagits bort!");
-        }
-
-        if ((args[0] == "a" && args[1] == "b") || (args[0] == "add" && args[1] == "book"))
-        {
-            connection.Open();
-            var insertCommand = new SqlCommand("INSERT INTO books (name) VALUES (@name)", connection);
-            insertCommand.Parameters.AddWithValue("@name", args[2]);
-            insertCommand.ExecuteNonQuery();
-            connection.Close();
-            Console.WriteLine($"Bok '{args[2]}' har lagts till!");
-        }
-
-        if ((args[0] == "r" && args[1] == "b") || (args[0] == "remove" && args[1] == "book"))
-        {
-            connection.Open();
-            var deleteCommand = new SqlCommand("DELETE FROM books WHERE name = @name", connection);
-            deleteCommand.Parameters.AddWithValue("@name", args[2]);
-            deleteCommand.ExecuteNonQuery();
-            connection.Close();
-            Console.WriteLine($"Bok '{args[2]}' har tagits bort!");
-        }
-
-        if ((args[0] == "l" && args[1] == "b") || (args[0] == "list" && args[1] == "books"))
-        {
-            if (args.Length > 2 && (args[2] == "--authors" || args[2] == "-a"))
-            {
-                connection.Open();
-                var juncCommand = new SqlCommand(@"
-SELECT
-    b.name,
-    a.name AS author_name
-FROM book_author ba
-         JOIN books b ON b.id = ba.book_id
-         JOIN authors a ON ba.author_id = a.id", connection);
-                var juncReader = juncCommand.ExecuteReader();
-
-                while (juncReader.Read())
+                break;
+            case "a":
+            case "add":
+                if (args[1].ToLowerInvariant() == "author" || args[1].ToLowerInvariant() == "a")
                 {
-                    Console.WriteLine($"{juncReader["name"]}: {juncReader["author_name"]}");
+                    connection.Open();
+                    connection.Execute("INSERT INTO authors (name) VALUES (@name)", new { name = args[2] });
+                    connection.Close();
+                    Console.WriteLine($"Författare '{args[2]}' har lagts till!");
+                    return;
                 }
 
-                connection.Close();
-                return;
-            }
+                if (args[1].ToLowerInvariant() == "book" || args[1].ToLowerInvariant() == "b")
+                {
+                    connection.Open();
+                    connection.Execute("INSERT INTO books (name) VALUES (@name)", new { name = args[2] });
+                    connection.Close();
+                    Console.WriteLine($"Bok '{args[2]}' har lagts till!");
+                    return;
+                }
 
+                break;
+            case "r":
+            case "remove":
+                if (args[1].ToLowerInvariant() == "author" || args[1].ToLowerInvariant() == "a")
+                {
+                    connection.Open();
+                    connection.Execute("DELETE FROM authors WHERE name = @name", new { name = args[2] });
+                    connection.Close();
+                    Console.WriteLine($"Författare '{args[2]}' har tagits bort!");
+                    return;
+                }
 
-            connection.Open();
-            var listCommand = new SqlCommand("SELECT * FROM books", connection);
-            var reader = listCommand.ExecuteReader();
-            while (reader.Read())
-            {
-                Console.WriteLine($"{reader["id"]}: {reader["name"]}");
-            }
+                if (args[1].ToLowerInvariant() == "book" || args[1].ToLowerInvariant() == "b")
+                {
+                    connection.Open();
+                    connection.Execute("DELETE FROM books WHERE name = @name", new { name = args[2] });
+                    connection.Close();
+                    Console.WriteLine($"Bok '{args[2]}' har tagits bort!");
+                    return;
+                }
 
-            connection.Close();
-        }
+                break;
+            case "m":
+            case "modify":
+                if (args[1].ToLowerInvariant() == "author" || args[1].ToLowerInvariant() == "a")
+                {
+                    if (args[3].ToLowerInvariant() == "set" && args[3].ToLowerInvariant() == "s" ||
+                        args[4].ToLowerInvariant() == "born" && args[4].ToLowerInvariant() == "b")
+                    {
+                        connection.Open();
+                        connection.Execute("UPDATE authors SET birth_year = @birth_year WHERE name = @name",
+                            new { birth_year = args[5], name = args[4] });
+                        connection.Close();
+                        Console.WriteLine($"{args[4]} har uppdaterats med {args[5]}!}");
+                    }
 
-        if ((args[0] == "m" && args[1] == "a") && (args[3] == "s" && args[4] == "b") ||
-            (args[0]) == "modify" && args[1] == "author" && args[3] == "set" && args[4] == "born")
-        {
-            connection.Open();
-            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
-            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
-            var authResult = authorlistCommand.ExecuteScalar();
+                    if (args[3].ToLowerInvariant() == "add" && args[3].ToLowerInvariant() == "a" ||
+                        args[4].ToLowerInvariant() == "book" && args[4].ToLowerInvariant() == "b")
+                    {
+                        connection.Open();
+                        var authId = connection.Query("SELECT id FROM authors WHERE name = @name",
+                            new { name = args[2] });
+                        var bookId = connection.Query("SELECT id FROM books WHERE name = @name",
+                            new { name = args[5] });
+                        connection.Execute("INSERT INTO book_author (book_id, author_id) VALUES (@book_id, @author_id)",
+                            new { book_id = bookId, author_id = authId });
+                        connection.Close();
+                    }
 
-            if (!int.TryParse(args[5], out _))
-            {
-                return;
-            }
-
-            if (authResult == null)
-            {
-                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
-                connection.Close();
-                return;
-            }
-
-            var addAuthorCommand = new SqlCommand(@"UPDATE authors 
-    SET birth_year = @birth_year
-    WHERE name = @name", connection);
-            addAuthorCommand.Parameters.AddWithValue("@birth_year", args[5]);
-            addAuthorCommand.Parameters.AddWithValue("@name", args[2]);
-            addAuthorCommand.ExecuteNonQuery();
-            connection.Close();
-        }
-
-        if ((args[0] == "m" && args[1] == "a" && args[3] == "a" && args[4] == "b") ||
-            (args[0] == "modify" && args[1] == "author" && args[3] == "add" && args[4] == "book"))
-        {
-            connection.Open();
-            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
-            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
-            var authResult = authorlistCommand.ExecuteScalar();
-
-            if (authResult == null)
-            {
-                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
-                connection.Close();
-                return;
-            }
-
-            var authorId = Convert.ToInt32(authResult);
-
-            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
-            booklistCommand.Parameters.AddWithValue("@name", args[5]);
-            var bookResult = booklistCommand.ExecuteScalar();
-
-            if (bookResult == null)
-            {
-                Console.WriteLine($"Bok '{args[5]}' hittades inte!");
-                connection.Close();
-                return;
-            }
-
-            var bookId = Convert.ToInt32(bookResult);
-
-            var connectionCommand =
-                new SqlCommand("INSERT INTO book_author (book_id, author_id) VALUES (@book_id, @author_id)",
-                    connection);
-            connectionCommand.Parameters.AddWithValue("@book_id", bookId);
-            connectionCommand.Parameters.AddWithValue("@author_id", authorId);
-            connectionCommand.ExecuteNonQuery();
-            connection.Close();
-        }
-
-        if ((args[0] == "m" && args[1] == "a" && args[3] == "r" && args[4] == "b") ||
-            (args[0] == "modify" && args[1] == "author" && args[3] == "remove" && args[4] == "book"))
-        {
-            connection.Open();
-            var authorlistCommand = new SqlCommand("SELECT id FROM authors WHERE name = @name", connection);
-            authorlistCommand.Parameters.AddWithValue("@name", args[2]);
-            var authResult = authorlistCommand.ExecuteScalar();
-
-            if (authResult == null)
-            {
-                Console.WriteLine($"Författare '{args[2]}' hittades inte!");
-                connection.Close();
-                return;
-            }
-
-            var authorId = Convert.ToInt32(authResult);
-
-            var booklistCommand = new SqlCommand("SELECT id FROM books WHERE name = @name", connection);
-            booklistCommand.Parameters.AddWithValue("@name", args[5]);
-            var bookResult = booklistCommand.ExecuteScalar();
-
-            if (bookResult == null)
-            {
-                Console.WriteLine($"Bok '{args[5]}' hittades inte!");
-                connection.Close();
-                return;
-            }
-
-            var bookId = Convert.ToInt32(bookResult);
-
-            var connectionId = new SqlCommand(@"DELETE FROM book_author WHERE  
-                                              book_id = @bookId AND author_id = @authorId", connection);
-            connectionId.Parameters.AddWithValue("@bookId", bookId);
-            connectionId.Parameters.AddWithValue("@authorId", authorId);
-            connectionId.ExecuteNonQuery();
-            connection.Close();
+                    if (args[3] == "remove" || args[3] == "r" &&
+                        args[4] == "book" || args[4] == "b")
+                    {
+                        connection.Open();
+                        var authId = connection.Query("SELECT id FROM authors WHERE name = @name",
+                            new { name = args[2] });
+                        var bookId = connection.Query("SELECT id FROM books WHERE name = @name",
+                            new { name = args[5] });
+                        connection.Execute("DELETE FROM book_author WHERE book_id = @book_id AND author_id = @author_id",
+                            new { book_id = bookId, author_id = authId });
+                        connection.Close();
+                    }
+                }
+                
+                break;
         }
 
         if ((args[0] == "m" && args[1] == "b" && args[3] == "s" && args[4] == "p") ||
