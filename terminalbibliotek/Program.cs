@@ -86,7 +86,7 @@ END", connection);
             deleteCommand.Parameters.AddWithValue("@name", args[2]);
             deleteCommand.ExecuteNonQuery();
             connection.Close();
-            Console.WriteLine($"Författare med id '{args[2]}' har tagits bort!");
+            Console.WriteLine($"Författare '{args[2]}' har tagits bort!");
         }
 
         if ((args[0] == "a" && args[1] == "b") || (args[0] == "add" && args[1] == "book"))
@@ -111,6 +111,7 @@ END", connection);
 
         if ((args[0] == "l" && args[1] == "b") || (args[0] == "list" && args[1] == "books"))
         {
+            connection.Open();
             var listCommand = new SqlCommand("SELECT * FROM books", connection);
             var reader = listCommand.ExecuteReader();
             while (reader.Read())
