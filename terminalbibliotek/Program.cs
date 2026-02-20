@@ -26,7 +26,7 @@ END", connection);
         connection.Open();
         var bookCommand = new SqlCommand(@"
 IF NOT EXISTS (
-SELECT * FROM sys.tables WHERE name = 'authors') 
+SELECT * FROM sys.tables WHERE name = 'books') 
 BEGIN
 CREATE TABLE books (
             id INT IDENTITY(1,1) PRIMARY KEY,
@@ -39,7 +39,7 @@ END", connection);
         connection.Open();
         var bridgeCommand = new SqlCommand(@"
 IF NOT EXISTS (
-SELECT * FROM sys.tables WHERE name = 'authors') 
+SELECT * FROM sys.tables WHERE name = 'book_author')
 BEGIN
 CREATE TABLE book_author (
             book_id INT REFERENCES books(id),
