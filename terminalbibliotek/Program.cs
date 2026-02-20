@@ -30,8 +30,8 @@ SELECT * FROM sys.tables WHERE name = 'authors')
 BEGIN
 CREATE TABLE books (
             id INT IDENTITY(1,1) PRIMARY KEY,
-            name NVARCHAR(50)),
-            author_id INT REFERENCES authors(id);
+            name NVARCHAR(50),
+            author_id INT REFERENCES authors(id));
 END", connection);
         bookCommand.ExecuteNonQuery();
         connection.Close();
