@@ -40,7 +40,6 @@ class Program
                     connection.Execute("INSERT INTO books (name) VALUES (@name)", new { name = args[2] });
                     connection.Close();
                     Console.WriteLine($"Bok '{args[2]}' har lagts till!");
-                    return;
                 }
 
                 break;
@@ -61,7 +60,6 @@ class Program
                     connection.Execute("DELETE FROM books WHERE name = @name", new { name = args[2] });
                     connection.Close();
                     Console.WriteLine($"Bok '{args[2]}' har tagits bort!");
-                    return;
                 }
 
                 break;
