@@ -24,7 +24,6 @@ BEGIN
 CREATE TABLE books (
  id INT IDENTITY(1,1) PRIMARY KEY,
  name NVARCHAR(50),
- author_id INT REFERENCES authors(id),
  published INT,
  genre NVARCHAR(50)
 )
